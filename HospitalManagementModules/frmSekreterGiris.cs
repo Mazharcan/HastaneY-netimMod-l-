@@ -20,22 +20,33 @@ namespace HospitalManagementModules
         SqlBaglanti bgl = new SqlBaglanti();
         private void btnGirisYap_Click(object sender, EventArgs e)
         {
-            SqlCommand komut = new SqlCommand("select * from tbl_Sekreter where SekreterTC = @p1 and SekreterSifre = @p2", bgl.baglanti());
-            komut.Parameters.AddWithValue("@p1", mskTC.Text);
-            komut.Parameters.AddWithValue("@p2", txtSifre.Text);
-            SqlDataReader dr = komut.ExecuteReader();                         //sekretertc and sekreter sifre yerine , yazdın HATA dikkat et
-            if (dr.Read())                                                    //sorgulama yaptığımızdan if
+            try
             {
-                frmSekreterDetay frm = new frmSekreterDetay();
-                frm.TCnumara = mskTC.Text;
-                frm.Show();
-                this.Hide();
+                using (SqlCommand komut = new SqlCommand("select * from tbl_Sekreter where SekreterTC = @p1 and SekreterSifre = @p2", bgl.baglanti()))
+                {
+                    komut.Parameters.AddWithValue("@p1", mskTC.Text);
+                    komut.Parameters.AddWithValue("@p2", txtSifre.Text);
+                    using (SqlDataReader dr = komut.ExecuteReader())    //sekretertc and sekreter sifre yerine , yazdın HATA dikkat et
+                    {
+                        if (dr.Read())                                                    //sorgulama yaptığımızdan if
+                        {
+                            frmSekreterDetay frm = new frmSekreterDetay();
+                            frm.TCnumara = mskTC.Text;
+                            frm.Show();
+                            this.Hide();
+                        }
+                        else
+                        {
+                            MessageBox.Show("Hatalı TC veya Sifre", "Bilgi", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                        }
+                    }
+                }
             }
-            else
+            catch (Exception ex)
             {
-                MessageBox.Show("Hatalı TC veya Sifre", "Bilgi", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show(ex.Message);
             }
-            bgl.baglanti().Close();                       //bunu yazmayı unuttun!! hHATA VERİR
+            finally { bgl.baglanti().Close(); }
         }
     }
 }

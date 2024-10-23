@@ -8,7 +8,7 @@ using System.Data.SqlClient;
 
 namespace HospitalManagementModules
 {
-    internal class SqlBaglanti
+    public class SqlBaglanti
     {
         //metot oluştur
         public SqlConnection baglanti()

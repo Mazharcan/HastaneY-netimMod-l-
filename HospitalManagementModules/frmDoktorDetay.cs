@@ -26,20 +26,45 @@ namespace HospitalManagementModules
             //tc yi nerden alıcak doktorgitiş panelinde frm kısmında fr.TC = mskTC.Text; kodunu yazıcan
 
             //DOKTOR AD SOYAD
-            SqlCommand komut = new SqlCommand("select doktorad,doktorsoyad from tbl_doktor where doktortc = @p1",bgl.baglanti());
-            komut.Parameters.AddWithValue("@p1", lblTC.Text);
-            SqlDataReader dr = komut.ExecuteReader();
-            while (dr.Read())                 //if sadece girişlerde parametrelerin birbirne eşitliğini sorgulamada
+            try
             {
-                lblAdSoyad.Text = dr[0] + " " + dr[1];
+                using (SqlConnection connection = bgl.baglanti()) // bağlantı açılır
+                {
+                    using (SqlCommand komut = new SqlCommand("select doktorad, doktorsoyad from tbl_doktor where doktortc = @p1", connection))
+                    {
+                        komut.Parameters.AddWithValue("@p1", lblTC.Text);
+
+                        // SqlDataReader kullanımı
+                        using (SqlDataReader dr = komut.ExecuteReader())
+                        {
+                            if (dr.Read()) // Veriler varsa
+                            {
+                                lblAdSoyad.Text = dr[0] + " " + dr[1]; // Doktor adı ve soyadını label'a atar
+                            }
+                        }
+                    }
+                    //using bloğu içinde iki farklı using blokları açtık
+                    // RANDEVULAR
+                    using (SqlDataAdapter da = new SqlDataAdapter("select * from tbl_Randevular where RandevuDoktor = @p2", connection))
+                    {
+                        // Parametre ekleme (SQL enjeksiyonundan korunmak için)
+                        da.SelectCommand.Parameters.AddWithValue("@p2", lblAdSoyad.Text);
+
+                        // DataTable ile verileri doldur ve DataGridView'e ata
+                        DataTable dt = new DataTable();
+                        da.Fill(dt);
+                        dgvRandevuListesi.DataSource = dt;
+                    }
+                }
             }
-
-            //RANDEVULAR
-            DataTable dt = new DataTable();
-            SqlDataAdapter da = new SqlDataAdapter("select * from tbl_Randevular where RandevuDoktor = '" + lblAdSoyad.Text + "'", bgl.baglanti());
-            da.Fill(dt);
-            dataGridView1.DataSource = dt;
-
+            catch(SqlException ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
         }
 
         private void btnGüncelle_Click(object sender, EventArgs e)
@@ -57,15 +82,16 @@ namespace HospitalManagementModules
 
         private void btnCıkıs_Click(object sender, EventArgs e)
         {
-            Application.Exit();
+            this.Close();
+            Giris giris = new Giris();
+            giris.Show();
         }
 
         private void dataGridView1_CellClick(object sender, DataGridViewCellEventArgs e)
         {
-            int secilen = dataGridView1.SelectedCells[0].RowIndex;
-            rchSikayet.Text = dataGridView1.Rows[secilen].Cells[7].Value.ToString();
+            int secilen = dgvRandevuListesi.SelectedCells[0].RowIndex;
+            rchSikayet.Text = dgvRandevuListesi.Rows[secilen].Cells[7].Value.ToString();
             //datagridin.satırları içerisinde secilen satırın(rows[secilen]).hücreleri içerisinde 7. hücre (cells[7]) randevu tablosundaki 7. sütun
-
         }
     }
     

@@ -20,10 +20,19 @@ namespace HospitalManagementModules
         SqlBaglanti bgl = new SqlBaglanti();
         private void frmDoktorDuyurular_Load(object sender, EventArgs e)
         {
-            DataTable dt = new DataTable();
-            SqlDataAdapter da = new SqlDataAdapter("select * from tbl_duyurular",bgl.baglanti());
-            da.Fill(dt);
-            dataGridView1.DataSource = dt;  
+            try
+            {
+                DataTable dt = new DataTable();
+                using (SqlDataAdapter da = new SqlDataAdapter("select * from tbl_duyurular", bgl.baglanti()))
+                {
+                    da.Fill(dt);
+                }
+                dgvHastaSikayet.DataSource = dt;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }  
         }
     }
 }
